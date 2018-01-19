@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <link href="resources/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="resources/leaflet/1.3.0/leaflet.css" rel="stylesheet" type="text/css" />
+    <link href="resources/bootstrap-datepicker/1.6.4/css/bootstrap-datepicker.min.css" rel="stylesheet" type="text/css" />
+    <style>
+    .subtitle {
+        position: absolute; 
+        top: 10px; 
+        width:100%; 
+        text-align: center; 
+        z-index: 1;
+    }
+    .arguide {
+        position: absolute; 
+        top: 30%;
+        right: 20px;
+        width:100%; 
+        text-align: right; 
+        z-index: 1;
+    }
+    .imageSection {
+        position: absolute; 
+        bottom: 30%;
+        left: 20px;
+        width:100%; 
+        text-align: left; 
+        z-index: 1;
+    }
+    .imgContainer {
+        height:30px;
+        width:auto;
+    }
+    .footer {
+        position: absolute; 
+        bottom: 10px; 
+        width:100%; 
+        text-align: center; 
+        z-index: 1;
+    }
+    html, body{ 
+        height: 100%; 
+        font-family: monospace; 
+    }
+    #map {
+        height: 0px; 
+        width: 0px;
+    }
+    #arrow {
+        visibility: hidden;
+    }
+    </style>
+</head>
+
+<body style='margin : 0px; overflow: hidden; font-family: Monospace;'>
+<div class='subtitle'>
+    <button type="button" class="btn btn-primary btn-sm toggleAR"><i class="fas fa-toggle-on"></i> AR</button>
+    <button type="button" class="btn btn-primary btn-sm geolocation"><i class="fas fa-location-arrow fa-1x"></i> 定位</button>
+    <button type="button" class="btn btn-primary btn-sm edit" data-toggle="modal" data-target="#myModal">
+        <i class="fas fa-pencil-alt"></i> 編輯
+    </button>
+    <button type="button" class="btn btn-primary btn-sm photo"><i class="fas fa-camera"></i> 拍照</button>
+</div>
+<div id="map"></div>
+<div class="arguide">
+    
+</div>
+<div class='imageSection'>
+    <!--<i class="fas fa-angle-double-up fa-7x"></i>-->
+    <!--<img src="data/images/forward.png" width="30px;"></img>-->
+    <div class="imgContainer">
+        <canvas width="240" height="180" id='imageShot'></canvas>
+    </div>
+</div>
+<!-- ICP Data Upload -->
+<div class="modal fade" id="myModal" role="dialog">
+<div class="modal-dialog">
+  <!-- Modal content-->
+  <div class="modal-content">
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal">&times;</button>
+      <h4 class="modal-title">病媒蚊密度調查表</h4>
+    </div>
+    <div class="modal-body">  
+        <div class="container-fluid">
+            <div class="row col-md-12 col-lg-12 section-row">
+                <div class="col-md-6"><i class="far fa-calendar"></i> 調查日期</div>
+                <div class="col-md-6"><input data-provide="datepicker" class="datepicker" /></div>
+            </div>
+            <div class="row col-md-12 col-lg-12 section-row">
+                <div class="col-md-6"><i class="fas fa-map-marker"></i> 地點</div>
+                <div class="col-md-6">
+                    <input type="text" class="form-control input-sm" id="icpdataaddress" placeholder="輸入地址(或點擊「定位」)"/>
+                </div>
+            </div>
+            <div class="row col-md-12 col-lg-12 section-row">
+                <div class="col-md-6"><i class="fas fa-compass"></i> 地區分類</div>
+                <div class="col-md-6">
+                <select class="form-control input-sm" id="area">
+                    <option>住宅</option><option>機關</option><option>學校</option><option>空地</option><option>其他</option>
+                </select>
+                </div>
+            </div>
+            <div class="row col-md-12 col-lg-12 section-row">
+                <div class="col-md-6"><i class="fas fa-user"></i> 調查人員種類</div>
+                <div class="col-md-6">
+                <select class="form-control input-sm" id="supervisor">
+                    <option>衛生局</option><option>監測</option><option>公服</option><option>疾管署</option><option>其他</option>
+                </select>
+                </div>
+            </div>
+            <div class="row col-md-12 col-lg-12 section-row"><hr /></div>
+            <div class="row col-md-12 col-lg-12 section-row">
+                <div class="col-md-3 text-center">花瓶<br><input type="text" class="form-control input-sm" id="vase" placeholder="0,1,2, ..." value="0"/></div>
+                <div class="col-md-3 text-center">各式底盤<br><input type="text" class="form-control input-sm" id="chassis" placeholder="0,1,2, ..." value="0"/></div>
+                <div class="col-md-3 text-center">水溝<br><input type="text" class="form-control input-sm" id="ditch" placeholder="0,1,2, ..." value="0"/></div>
+                <div class="col-md-3 text-center">其他<br><input type="text" class="form-control input-sm" id="others" placeholder="0,1,2, ..." value="0"/></div>
+            </div>
+            <div class="row col-md-12 col-lg-12 section-row"><hr /></div>
+            <div class="row col-md-12 col-lg-12 section-row">
+                <div class="col-md-12 text-center">上傳照片</div>
+                <div class="col-md-12 text-center" id="uploadImg">(請先點擊拍照)</div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-primary uploadicp">上傳</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">關閉</button>
+    </div>
+  </div>
+</div>
+</div>
+<div class='footer'>
+    <div class="row">
+        <img src="data/images/forward.png" width="100px;" id="arrow"></img>
+    </div>
+    <div class="row"></div>
+    <div class="row col-lg-12 col-md-12">
+        <button type="button" class="btn btn-default btn-sm geolocationinfo"><i class="fas fa-circle fa-xs"></i> (尚未定位)</button>
+        <button type="button" class="btn btn-default btn-sm icplevel"><i class="fas fa-exclamation-circle"></i> 0/0</button>
+    </div>
+</div>
+
+<!-- jquery -->
+<script src="resources/jquery/1.12.4/jquery-1.12.4.min.js"></script>
+<!-- three.js library -->
+<script src='three.js/examples/vendor/three.js/build/three.js'></script>
+<script src='three.js/examples/vendor/three.js/examples/js/libs/stats.min.js'></script>
+<!-- ar.js -->
+<script src="three.js/build/ar_mod.js"></script>
+<!-- bootstrap -->
+<script src="resources/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+<!-- fontaweson -->
+<script src="resources/fontawesome/5.0.4/svg-with-js/js/fontawesome-all.min.js"></script>
+<!-- leaflet -->
+<script src="resources/leaflet/1.3.0/leaflet.js"></script>
+<!-- seed -->
+<script src="resources/seed/1.0/Common.js"></script>
+<script src="resources/seed/1.0/TimeCounter.js"></script>
+<!-- bootstrap-datepicker -->
+<script src="resources/bootstrap-datepicker/1.6.4/js/bootstrap-datepicker.min.js"></script>
+<!-- rotation -->
+<script src="resources/jquery-rotate/jquery-rotate.min.js"></script>
+<script>
+// global variables
+var crtLocFlag = [];
+var latlng = L.latLng([25.0556462, 121.5492322]);
+var outdoorLayer = L.tileLayer(
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", 
+    { attribution: '', maxZoom: 16, minZoom: 8 }
+);
+var map = L.map('map',{ center: latlng, zoomControl: false, zoom: 10, layers: outdoorLayer});
+
+
+var renderer = "";  // camera stream
+var scene = "";
+var camera = "";
+var arToolkitContext = "";
+var markerRoot = "";
+var smoothedRoot = "";
+var aron = true;  // turn off the AR
+
+var magnifyFlag = true;
+var icpData = [];
+var icpDataCount = 0;
+
+////////////////////////////////////////////////////////////////////////////////////
+// AR Control
+////////////////////////////////////////////////////////////////////////////////////
+function arrowOnOff(option) {
+    switch(option) {
+        case "on":
+            $("#arrow").css({'visibility':'visible'});
+            break;
+        case "off":
+            $("#arrow").css({'visibility':'hidden'});
+            break;
+    }
+}
+
+function arswitch() {
+    if(aron) {
+        // turn off ar
+        
+        // camera
+        $('.toggleAR').html('<i class="fas fa-toggle-off"></i> AR');
+        if($('.toggleAR').hasClass('btn-primary')) {
+            $('.toggleAR').removeClass('btn-primary');
+            $('.toggleAR').addClass('btn-default');
+        }
+        aron = false;
+        scene.remove(smoothedRoot);
+        
+        // arrow
+        if(icpDataCount > 0) {
+            arrowOnOff("off");
+        }
+    } else {
+        // turn on ar
+        
+        // camera
+        $('.toggleAR').html('<i class="fas fa-toggle-on"></i> AR');
+        if($('.toggleAR').hasClass('btn-default')) {
+            $('.toggleAR').removeClass('btn-default');
+            $('.toggleAR').addClass('btn-primary');
+        }
+        aron = true;
+        scene.add(smoothedRoot);
+        
+        // arrow
+        if(icpDataCount > 0) {
+            arrowOnOff("on");
+        }
+    }
+    
+    startAR();
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+// AR module
+////////////////////////////////////////////////////////////////////////////////////
+function startAR() {
+    if(! aron) { 
+        // ar toogle switch
+        return; 
+    }
+    THREEx.ArToolkitContext.baseURL = './';
+    //////////////////////////////////////////////////////////////////////////////////
+    //		Init
+    //////////////////////////////////////////////////////////////////////////////////
+
+    // init webcam renderer
+    renderer	= new THREE.WebGLRenderer({
+        // antialias	: true,
+        alpha: true
+    });
+    renderer.setClearColor(new THREE.Color('lightgrey'), 0)
+    // renderer.setPixelRatio( 1/2 );
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    renderer.domElement.style.position = 'absolute'
+    renderer.domElement.style.top = '0px'
+    renderer.domElement.style.left = '0px'
+    document.body.appendChild( renderer.domElement );
+
+    // array of functions for the rendering loop
+    var onRenderFcts= [];
+
+    // init scene and camera
+    scene	= new THREE.Scene();
+    
+    //////////////////////////////////////////////////////////////////////////////////
+    //		Initialize a basic camera
+    //////////////////////////////////////////////////////////////////////////////////
+
+    // Create a camera
+    camera = new THREE.Camera();
+    scene.add(camera);
+
+    ////////////////////////////////////////////////////////////////////////////////
+    //          handle arToolkitSource
+    ////////////////////////////////////////////////////////////////////////////////
+
+    var arToolkitSource = new THREEx.ArToolkitSource({
+        // to read from the webcam 
+        sourceType : 'webcam',
+
+        // to read from an image
+        // sourceType : 'image',
+        // sourceUrl : THREEx.ArToolkitContext.baseURL + '../data/images/img.jpg',		
+
+        // to read from a video
+        // sourceType : 'video',
+        // sourceUrl : THREEx.ArToolkitContext.baseURL + '../data/videos/headtracking.mp4',		
+    })
+
+    arToolkitSource.init(function onReady(){
+        onResize();
+    })
+    
+    // handle resize
+    window.addEventListener('resize', function(){
+        onResize();
+    })
+    function onResize(){
+        arToolkitSource.onResize()	
+        arToolkitSource.copySizeTo(renderer.domElement)	
+        if( arToolkitContext.arController !== null ){
+            arToolkitSource.copySizeTo(arToolkitContext.arController.canvas)	
+        }	
+    }
+    ////////////////////////////////////////////////////////////////////////////////
+    //          initialize arToolkitContext
+    ////////////////////////////////////////////////////////////////////////////////
+    
+
+    // create atToolkitContext
+    arToolkitContext = new THREEx.ArToolkitContext({
+        cameraParametersUrl: THREEx.ArToolkitContext.baseURL + 'data/data/camera_para.dat',
+        detectionMode: 'mono',
+        maxDetectionRate: 30,
+        canvasWidth: 80*3,
+        canvasHeight: 60*3,
+    });
+    // initialize it
+    arToolkitContext.init(function onCompleted(){
+        // copy projection matrix to camera
+        camera.projectionMatrix.copy( arToolkitContext.getProjectionMatrix() );
+    });
+
+    // update artoolkit on every frame
+    onRenderFcts.push(function(){
+        if( arToolkitSource.ready === false )	return
+
+        arToolkitContext.update( arToolkitSource.domElement )
+    });
+    
+    
+    ////////////////////////////////////////////////////////////////////////////////
+    //          Create a ArMarkerControls
+    ////////////////////////////////////////////////////////////////////////////////
+    
+    markerRoot = new THREE.Group;
+    scene.add(markerRoot);
+    var artoolkitMarker = new THREEx.ArMarkerControls(arToolkitContext, markerRoot, {
+        type : 'pattern',
+        // patternUrl : THREEx.ArToolkitContext.baseURL + 'data/data/patt.hiro'
+        patternUrl : THREEx.ArToolkitContext.baseURL + 'data/data/CDC'
+    })
+
+    // build a smoothedControls
+    smoothedRoot = new THREE.Group();
+    scene.add(smoothedRoot);
+    var smoothedControls = new THREEx.ArSmoothedControls(smoothedRoot, {
+        lerpPosition: 0.4,
+        lerpQuaternion: 0.3,
+        lerpScale: 1,
+    })
+    onRenderFcts.push(function(delta){
+        smoothedControls.update(markerRoot)
+    })
+    //////////////////////////////////////////////////////////////////////////////////
+    //		add an object in the scene
+    //////////////////////////////////////////////////////////////////////////////////
+
+    var arWorldRoot = smoothedRoot;
+
+    // add a cube
+    //var geometry	= new THREE.CubeGeometry(1,1,1);
+    /*var geometry	= new THREE.CubeGeometry(1,0.5,1);
+    var material	= new THREE.MeshNormalMaterial({
+        transparent : true,
+        opacity: 0.5,
+        side: THREE.DoubleSide
+    }); 
+    var mesh	= new THREE.Mesh( geometry, material );
+    mesh.position.y	= geometry.parameters.height/2
+    arWorldRoot.add( mesh );*/
+    
+    // add a symbol(e.g. torus knot, etc.)
+    //var geometry	= new THREE.TorusKnotGeometry(0.3,0.1,64,16);
+    var geometry	= new THREE.TorusGeometry(0.3,0.05,64,16);
+    var material	= new THREE.MeshNormalMaterial(); 
+    var mesh	= new THREE.Mesh( geometry, material );
+    mesh.position.y	= 0.2;
+    mesh.rotation.x = 1.57;
+    arWorldRoot.add( mesh );    
+    onRenderFcts.push(function(){
+        // set rotation angle
+        //mesh.rotation.x += 0.1
+        mesh.rotation.z += 0.05
+    });
+
+    //////////////////////////////////////////////////////////////////////////////////
+    //		render the whole thing on the page
+    //////////////////////////////////////////////////////////////////////////////////
+    
+    // show the FPS status
+    var stats = new Stats();
+    //document.body.appendChild( stats.dom );
+    // render the scene
+    onRenderFcts.push(function(){
+        renderer.render( scene, camera );
+        stats.update();
+    });
+
+    // run the rendering loop    
+    var lastTimeMsec= null;
+    requestAnimationFrame(function animate(nowMsec){
+        // keep looping
+        requestAnimationFrame( animate );
+        // measure time
+        lastTimeMsec	= lastTimeMsec || nowMsec-1000/60;
+        var deltaMsec	= Math.min(200, nowMsec - lastTimeMsec);
+        lastTimeMsec	= nowMsec;
+        // call each update function
+        onRenderFcts.forEach(function(onRenderFct){
+            onRenderFct(deltaMsec/1000, nowMsec/1000);
+        });
+    });
+    
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+// latlng and address
+////////////////////////////////////////////////////////////////////////////////////
+// geolocation
+function showCurrentLocation() {
+    // add the marker and circle
+    function onLocationFound(e) {
+        $('.geolocation').html('<i class="fas fa-circle-notch fa-spin"></i> 定位中');
+        crtLocFlag = [];
+        crtLocFlag.push(e.latlng);
+        getAddress(e.latlng);
+    }
+    function onLocationError(e) {
+        alert(e.message);
+    }
+    map.on('locationfound', onLocationFound);
+    map.on('locationerror', onLocationError);
+    map.locate({});
+}
+
+// ar arrow
+function ARarrow(icpIndex) {
+    function rotationFunc(degree) {
+        $("#arrow").rotate({ duration:1500, animateTo:degree });
+    }
+
+    var getICPLanLon = [icpData[icpIndex]["lat"], icpData[icpIndex]["lon"]];
+    var crtLocLen = crtLocFlag.length - 1;
+    var currentLocLanLon = [crtLocFlag[crtLocLen]["lat"], crtLocFlag[crtLocLen]["lng"]];
+    
+    // simple direction
+    if(currentLocLanLon[1] < getICPLanLon[1]) {
+        // turn right
+        rotationFunc(45);
+    } else if (currentLocLanLon[1] > getICPLanLon[1]) {
+        // turn left
+        rotationFunc(-45);
+    }
+}
+
+// icp data
+function startIcpData() {
+    function parseICPData(data,getZone) {
+        var dataLen = getDictionaryLength(data[getZone]);
+        
+        if(dataLen > 0) {
+            icpData = data[getZone];
+            icpDataCount = 1;
+            $(".icplevel").html('<i class="fas fa-exclamation-circle"></i> ' + icpDataCount + '/' + dataLen);
+            if($('.icplevel').hasClass('btn-default')) {
+                $('.icplevel').removeClass('btn-default');
+                $('.icplevel').addClass('btn-danger')
+            }
+            $('.geolocationinfo').html('<i class="fas fa-compass"></i> 清查點: ' + icpData[0]['address']);
+            
+            // show the ar arrow
+            arrowOnOff("on");
+            ARarrow(0);
+        } else {
+            $(".icplevel").html('<i class="fas fa-exclamation-circle"></i> ' + '0/0');
+            if($('.icplevel').hasClass('btn-default')) {
+                $('.icplevel').removeClass('btn-default');
+                $('.icplevel').addClass('btn-success')
+            }
+        }
+    }
+    
+    $.ajax({
+        dataType: "json",
+        url: 'data/data/icp.json',
+        data: '',
+        beforeSend: function(data) {
+            $(".icplevel").html('<i class="fas fa-circle-notch fa-spin"></i>');
+        },
+        success: function(data) {
+            // show the detail
+            parseICPData(data, "demo");
+        }, 
+        error: function(data) {
+            $(".icplevel").html('<i class="fas fa-exclamation-triangle"></i> 資料錯誤');
+        }
+    });
+}
+
+// change to next icp address
+function changeIcpAddress() {
+    var dataLen = getDictionaryLength(icpData);
+    if(icpDataCount > 0) {
+        if(icpDataCount + 1 <= dataLen) {
+            icpDataCount += 1;
+        } else {
+            icpDataCount = 1;
+        }
+        $('.geolocationinfo').html('<i class="fas fa-compass"></i> 清查點: ' + icpData[icpDataCount-1]['address']);
+        $(".icplevel").html('<i class="fas fa-exclamation-circle"></i> ' + icpDataCount + '/' + dataLen);
+        
+        // show the ar arrow
+        ARarrow(icpDataCount-1);
+    }
+}
+
+// address
+function getAddress(getLagLon) {
+    function parseData(data) {
+        if(data['status'] == "OK") {
+            $('.geolocation').html('<i class="fas fa-location-arrow fa-1x"></i> 定位');
+            if($('.geolocation').hasClass('btn-primary')) {
+                $('.geolocation').removeClass('btn-primary');
+                $('.geolocation').addClass('btn-default')
+                $('.geolocation').html('<i class="fas fa-location-arrow fa-1x"></i> 定位');
+            }
+            
+            // full address in form
+            $('#icpdataaddress').val(data['results'][0]['formatted_address']);
+            // partial address
+            $('.geolocationinfo').html('<i class="fas fa-circle fa-xs"></i> 現在位置: ' 
+                + data['results'][0]['address_components'][4]['long_name'] 
+                + data['results'][0]['address_components'][3]['long_name'] 
+                + data['results'][0]['address_components'][2]['long_name']
+            );
+            if($('.geolocationinfo').hasClass('btn-default')) {
+                $('.geolocationinfo').removeClass('btn-default');
+                $('.geolocationinfo').addClass('btn-success')
+            }
+            
+            // simulate icp api
+            startIcpData();
+        } else {
+            $('.geolocation').html('<i class="fas fa-exclamation-triangle"></i> 定址');
+        }
+    }
+
+    var googleapi = 'https://maps.googleapis.com/maps/api/geocode/json?latlng=' + getLagLon.lat + ',' + getLagLon.lng + '&key=';
+    var googleapikey = 'AIzaSyDVj7wInWLih5hYS136VxKAKYkO7M8cRpc';
+    $.ajax({
+        dataType: "json",
+        url: googleapi + googleapikey,
+        data: '',
+        beforeSend: function(data) {
+            $('.geolocation').html('<i class="fas fa-circle-notch fa-spin"></i> 找尋地址');
+        },
+        success: function(data) {
+            // show the detail
+            parseData(data);
+        }, 
+        error: function(data) {
+            $('.geolocation').html('<i class="fas fa-exclamation-triangle"></i> 定址');
+        }
+    });
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+// take photo
+// https://github.com/jeromeetienne/AR.js/issues/218
+////////////////////////////////////////////////////////////////////////////////////
+var img = null;
+function takeScreenshot() {
+    img = new Image();
+    var secondImg = new Image();
+    renderer.render(scene, camera);
+    var imageCanvas = document.getElementById('imageShot');
+    var context = imageCanvas.getContext('2d');
+    var sources = {
+        getImage: arToolkitContext.arController.canvas.toDataURL("image/png")
+    };
+
+    loadImages(sources, function(images){
+        context.drawImage(images.getImage, 0, 0);
+        img.src = imageCanvas.toDataURL("image/png");
+        $('#imageShot').html(img);
+        $('#uploadImg').html(img);
+        
+        // style the image
+        if(! magnifyFlag) {
+            $('#imageShot').css({ 'width':'240', 'height':'180' });
+        }
+        $('#imageShot').css({'border':'2px solid rgba(255,255,255,1)'});
+        if(! $('#imageShot').hasClass('toogleMag')) {
+            $('#imageShot').addClass('toogleMag');
+            // only the first time to set up the click event
+            $('.toogleMag').click(function() {
+                if(magnifyFlag) {
+                    // shrink
+                    magnifyFlag = false;
+                    $('#imageShot').css({ 'width':'120', 'height':'90' });
+                } else {
+                    // mangify
+                    magnifyFlag = true;
+                    $('#imageShot').css({ 'width':'240', 'height':'180' });
+                }
+            });
+        }
+        magnifyFlag = true;
+    });
+}
+
+function loadImages(sources, callback) {
+    var images = {};
+    var loadedImages = 0;
+    var numImages = 0;
+    // get num of sources
+    for (var src in sources) {
+        numImages++;
+    }
+    for (var src in sources) {
+        images[src] = new Image();
+        images[src].onload = function () {
+            if (++loadedImages >= numImages) {
+                callback(images);
+            }
+        };
+        images[src].src = sources[src];
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+// main entry
+////////////////////////////////////////////////////////////////////////////////////
+$(function() {
+    startAR();
+    
+    // initialize
+    $('.datepicker').datepicker({
+        format: 'yyyy-mm-dd',
+        startDate: '-3d'
+    });
+    
+    // user events
+    $('.geolocation').click(function() {
+        showCurrentLocation();  // get the current location
+    });
+    $('.toggleAR').click(function() {
+        arswitch();
+    });
+    $('.photo').click(function() {
+        takeScreenshot();
+    });
+    $('.icplevel').click(function() {
+        changeIcpAddress();
+    });
+    $('.edit').click(function() {
+        // get the date
+        var getDate =  new Date();
+        $('.datepicker').val(getCrtYear(getDate) + '-' + getCrtMonth(getDate) + '-' + getCrtDate(getDate));
+    });
+    $('.uploadicp').click(function() {
+        $('.uploadicp').html('<i class="fas fa-circle-notch fa-spin"></i> ' + '上傳中');
+        setTimeout(function(){ 
+            $('.uploadicp').html('<i class="fas fa-cloud-upload-alt"></i> ' + '上傳完成');
+        }, 1000);
+        setTimeout(function(){ 
+            $('.uploadicp').html('上傳');
+        }, 3000);
+    });
+});
+</script>
+</body>
+</html>
