@@ -24,7 +24,7 @@
     }
     .imageSection {
         position: absolute; 
-        bottom: 30%;
+        bottom: 50%;
         left: 20px;
         width:100%; 
         text-align: left; 
@@ -577,10 +577,10 @@ function getAddress(getLagLon) {
 ////////////////////////////////////////////////////////////////////////////////////
 // take photo
 // https://github.com/jeromeetienne/AR.js/issues/218
+// https://jsfiddle.net/AbdiasSoftware/7PRNN/
 ////////////////////////////////////////////////////////////////////////////////////
-var img = null;
 function takeScreenshot() {
-    img = new Image();
+    var img = new Image();
     var secondImg = new Image();
     renderer.render(scene, camera);
     var imageCanvas = document.getElementById('imageShot');
@@ -594,6 +594,14 @@ function takeScreenshot() {
         img.src = imageCanvas.toDataURL("image/png");
         $('#imageShot').html(img);
         $('#uploadImg').html(img);
+        
+        // auto download
+        var dwnImg = imageCanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+        var alink = document.createElement('a');
+        alink.href = dwnImg;
+        alink.download = getDate("default") + '_' + getLocation('current') + '.png';
+        alink.click();
+        delete alink;
         
         // style the image
         if(! magnifyFlag) {
@@ -638,6 +646,28 @@ function loadImages(sources, callback) {
     }
 }
 
+// other functions
+function getDate(option) {
+    switch(option) {
+        case "default":
+        default:
+            var getDate =  new Date();
+            return (getCrtYear(getDate) + '-' + getCrtMonth(getDate) + '-' + getCrtDate(getDate));
+    }
+}
+
+function getLocation(option) {
+    switch(option) {
+        case "current":
+        default:
+            if($('#icpdataaddress').val().length > 0) {
+                return($('#icpdataaddress').val());
+            } else {
+                return("(輸入地址或先按定位)");
+            }
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////////
 // main entry
 ////////////////////////////////////////////////////////////////////////////////////
@@ -665,8 +695,7 @@ $(function() {
     });
     $('.edit').click(function() {
         // get the date
-        var getDate =  new Date();
-        $('.datepicker').val(getCrtYear(getDate) + '-' + getCrtMonth(getDate) + '-' + getCrtDate(getDate));
+        $('.datepicker').val(getDate("default"));
     });
     $('.uploadicp').click(function() {
         $('.uploadicp').html('<i class="fas fa-circle-notch fa-spin"></i> ' + '上傳中');

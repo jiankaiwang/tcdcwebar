@@ -6,6 +6,15 @@ Develop a web app for two regular epidemic prevention businesses, collecting the
 
 
 
+## Get Started
+
+* Surf the link [https://jiankaiwang.github.io/tcdcwebar/](https://jiankaiwang.github.io/tcdcwebar/) over the browser.
+* Open the image or aim your camera to the image.
+
+![tcdc logo](data/images/cdc-logo.png)
+
+
+
 ## Tool
 
 * Augmented Reality
@@ -25,6 +34,7 @@ Develop a web app for two regular epidemic prevention businesses, collecting the
   * Google Map API
   * OpenStreetMap
 * Camera : [Logitech c170 Webcam](http://support.logitech.com/zh_tw/product/webcam-c170)
+
 
 
 
