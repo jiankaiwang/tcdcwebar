@@ -41,28 +41,13 @@
         text-align: center; 
         z-index: 1;
     }
-    .shrink {
-        -moz-transform:translateY(18em);
-        -webkit-transform:translateY(18em);
-        -o-transform:translateY(18em);
-        -ms-transform:translateY(18em);
-        transform:translateY(18em);
-    }
     html, body{ 
         height: 100%; 
         font-family: monospace; 
     }
     #map {
-        position: absolute; 
-        top: 10%; 
-        right: 20px;
-        height: 150px; 
-        width: 100px;
-        z-index: -100;
-        border: 3px solid rgba(255,255,255,1);
-        border-radius: 5px;
-        -webkit-border-radius: 5px;
-        -moz-border-radius: 5px;
+        height: 0px; 
+        width: 0px;
     }
     #arrow {
         visibility: hidden;
@@ -182,7 +167,6 @@
 <script>
 // global variables
 var crtLocFlag = [];
-var icpLocList = [];
 var latlng = L.latLng([25.0556462, 121.5492322]);
 var outdoorLayer = L.tileLayer(
     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", 
@@ -217,17 +201,6 @@ function arrowOnOff(option) {
     }
 }
 
-function routingOnOff(option) {
-    switch(option) {
-        case "on":
-            $("#map").css({'z-index':'100'});
-            break;
-        case "off":
-            $("#map").css({'z-index':'-100'});
-            break;
-    }
-}
-
 function arswitch() {
     if(aron) {
         // turn off ar
@@ -241,10 +214,9 @@ function arswitch() {
         aron = false;
         scene.remove(smoothedRoot);
         
-        // arrow / path control
+        // arrow
         if(icpDataCount > 0) {
-            //arrowOnOff("off");
-            routingOnOff("off");
+            arrowOnOff("off");
         }
     } else {
         // turn on ar
@@ -258,10 +230,9 @@ function arswitch() {
         aron = true;
         scene.add(smoothedRoot);
         
-        // arrow / path control
+        // arrow
         if(icpDataCount > 0) {
-            //arrowOnOff("on");
-            routingOnOff("on");
+            arrowOnOff("on");
         }
     }
     
@@ -455,41 +426,6 @@ function startAR() {
 ////////////////////////////////////////////////////////////////////////////////////
 // latlng and address
 ////////////////////////////////////////////////////////////////////////////////////
-// remove all layers on map
-function removeAllLayersFromMap() {
-    if(icpLocList.length > 0) {
-        for(var i = 0 ; i < icpLocList.length ; i++) {
-            map.removeLayer(icpLocList[i]);
-        }
-    }
-}
-
-// add markers
-function addMarkers(options, latlon) {
-    switch(options) {
-        case "self":
-            var circle = L.circle(latlon, {
-                color: 'rgba(63,72,204,0.8)',
-                fillColor: 'rgba(63,72,204,0.2)',
-                fillOpacity: 0.8,
-                radius: 20
-            });
-            icpLocList.push(circle);
-            circle.addTo(map);
-            break;
-        case "mark":
-            var circle = L.circle(latlon, {
-                color: 'rgba(237,28,36,0.8)',
-                fillColor: 'rgba(237,28,36,0.2)',
-                fillOpacity: 0.8,
-                radius: 20
-            });
-            icpLocList.push(circle);
-            circle.addTo(map);
-            break;
-    }
-}
-
 // geolocation
 function showCurrentLocation() {
     // add the marker and circle
@@ -497,14 +433,6 @@ function showCurrentLocation() {
         $('.geolocation').html('<i class="fas fa-circle-notch fa-spin"></i> 定位中');
         crtLocFlag = [];
         crtLocFlag.push(e.latlng);
-        
-        // show the map and control the map
-        $('#map').css({ 'z-index':100 });
-        removeAllLayersFromMap();
-        map.setView(crtLocFlag[0], 15);
-        addMarkers("self",crtLocFlag[0]);
-        
-        // get current address
         getAddress(e.latlng);
     }
     function onLocationError(e) {
@@ -535,110 +463,6 @@ function ARarrow(icpIndex) {
     }
 }
 
-/*
- * desc : show the whole route path
- */
-function __showRoutePath(data) {
-	// add the information
-	__sumName = data["routes"][0]["legs"][0]["summary"];
-	__allLine = [];
-
-	// add to the geojson collection
-	__geoLine = [];
-	
-	// add each part of route
-	var allPoints = data["routes"][0]["legs"][0]["steps"];
-	
-	// for prepare a line
-	var prepareLineFlag = 0;
-	var startPoint = null;
-	var endPoint = null;
-	var lineRange = null;
-	var locInfo = ["",""];
-	
-	for(var i = 0 ; i < allPoints.length ; i++) {	
-		for(var j = 0 ; j < allPoints[i]["intersections"].length ; j++) {
-			switch(prepareLineFlag) {
-				case 0:
-					// start point
-					startPoint = new L.LatLng(allPoints[i]["intersections"][j]["location"][1], allPoints[i]["intersections"][j]["location"][0]);
-					if(getDictionaryKeyList(allPoints[j]).indexOf("name") > -1) {
-						locInfo[0] = allPoints[j]["name"];
-					} else {
-						locInfo[0] = "";
-					}
-					
-					// set the flag to the end point
-					prepareLineFlag = 1;
-					break;
-				case 1:
-					// end point
-					endPoint =  new L.LatLng(allPoints[i]["intersections"][j]["location"][1], allPoints[i]["intersections"][j]["location"][0]);
-					if(getDictionaryKeyList(allPoints[j]).indexOf("name") > -1) {
-						locInfo[1] = allPoints[j]["name"];
-					} else {
-						locInfo[1] = "";
-					}
-					
-					// draw the line
-					lineRange = [startPoint, endPoint];
-					var routePolyline = new L.Polyline(lineRange, {
-						//className: __getRouteClass(),
-					    color: 'green',
-					    weight: 3,
-					    opacity: '0.8',
-					    smoothFactor: 3
-					});
-                    icpLocList.push(routePolyline);
-					routePolyline.addTo(map);
-					
-					// the current end point is the next start point
-					startPoint = endPoint;
-					endPoint = null;
-					locInfo[0] = locInfo[1];
-					break;
-			}
-		}  // inner for-loop
-	}  // outer for-loop
-}
-
-
-// add path from osrm
-function addICPDataPath(icpIndex) {
-    var getICPLanLon = [icpData[icpIndex]["lat"], icpData[icpIndex]["lon"]];
-    var crtLocLen = crtLocFlag.length - 1;
-    var currentLocLanLon = [crtLocFlag[crtLocLen]["lat"], crtLocFlag[crtLocLen]["lng"]];
-    
-    var routeService = "https://travelfeet.ddns.net/routeapi?loc=" + 
-		'' + currentLocLanLon[1] + ',' + currentLocLanLon[0] +
-		';' + getICPLanLon[1] + ',' + getICPLanLon[0];
-	
-	$.ajax({
-		type: "GET",
-		url: routeService,
-		data: "",
-		contentType: "application/x-www-form-urlencoded",
-		datatype: 'json',
-		timeout: 10*1000,
-		beforeSend: function() {},
-		success: function (msg) {
-			// clear the current route
-			removeAllLayersFromMap();
-            
-            // mark the destination
-            addMarkers("mark",icpData[icpIndex]);
-			
-			// start to show the current route
-            map.setView(crtLocFlag[0], 15);
-            addMarkers("self",crtLocFlag[0]);
-			__showRoutePath(msg);
-		},
-		error: function (xhr, ajaxOptions, thrownError) {
-			console.log('Can not route the path.');
-		}
-	});
-}
-
 // icp data
 function startIcpData() {
     function parseICPData(data,getZone) {
@@ -654,11 +478,9 @@ function startIcpData() {
             }
             $('.geolocationinfo').html('<i class="fas fa-compass"></i> 清查點: ' + icpData[0]['address']);
             
-            // show the ar arrow or routing path
-            //arrowOnOff("on");
-            //ARarrow(0);
-            addICPDataPath(0);
-            
+            // show the ar arrow
+            arrowOnOff("on");
+            ARarrow(0);
         } else {
             $(".icplevel").html('<i class="fas fa-exclamation-circle"></i> ' + '0/0');
             if($('.icplevel').hasClass('btn-default')) {
@@ -697,9 +519,8 @@ function changeIcpAddress() {
         $('.geolocationinfo').html('<i class="fas fa-compass"></i> 清查點: ' + icpData[icpDataCount-1]['address']);
         $(".icplevel").html('<i class="fas fa-exclamation-circle"></i> ' + icpDataCount + '/' + dataLen);
         
-        // show the ar arrow or the routing path
-        //ARarrow(icpDataCount-1);
-        addICPDataPath(icpDataCount-1);
+        // show the ar arrow
+        ARarrow(icpDataCount-1);
     }
 }
 
@@ -775,7 +596,7 @@ function takeScreenshot() {
         $('#uploadImg').html(img);
         
         // auto download
-        var dwnImg = imageCanvas.toDataURL("image/png");
+        var dwnImg = imageCanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
         var alink = document.createElement('a');
         alink.href = dwnImg;
         alink.download = getDate("default") + '_' + getLocation('current') + '.png';
@@ -794,13 +615,11 @@ function takeScreenshot() {
                 if(magnifyFlag) {
                     // shrink
                     magnifyFlag = false;
-                    $('#imageShot').css({ 'width':'120', 'height':'auto' });
-                    $('#imageShot').addClass('shrink');
+                    $('#imageShot').css({ 'width':'120', 'height':'90' });
                 } else {
                     // mangify
                     magnifyFlag = true;
-                    $('#imageShot').css({ 'width':'240', 'height':'auto' });
-                    $('#imageShot').removeClass('shrink');
+                    $('#imageShot').css({ 'width':'240', 'height':'180' });
                 }
             });
         }
@@ -869,10 +688,6 @@ $(function() {
         arswitch();
     });
     $('.photo').click(function() {
-        // check image location
-        if($('#imageShot').hasClass('shrink')) {
-            $('#imageShot').removeClass('shrink');
-        }
         takeScreenshot();
     });
     $('.icplevel').click(function() {
