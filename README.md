@@ -40,12 +40,24 @@ Develop a web app for two regular epidemic prevention businesses, collecting the
 
 ## Demo
 
-* Mobile View
+* mobile view with routing map
+
+![mobile](data/images/mobile_view.png)
+
+
+
+* mobile view with routing arrow
 
 ![mobile](data/images/mobile.png)
 
 
 
-* Desktop View
+* desktop view with routing map
+
+![desktop view](data/images/desktop_view.png)
+
+
+
+* desktop view with routing arrow
 
 ![mobile](data/images/desktop.png)
