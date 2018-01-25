@@ -87,7 +87,7 @@
     <!--<i class="fas fa-angle-double-up fa-7x"></i>-->
     <!--<img src="data/images/forward.png" width="30px;"></img>-->
     <div class="imgContainer">
-        <canvas width="240" height="180" id='imageShot'></canvas>
+        <canvas width="240" height="auto" id='imageShot'></canvas>
     </div>
 </div>
 <!-- ICP Data Upload -->
@@ -784,7 +784,7 @@ function takeScreenshot() {
         
         // style the image
         if(! magnifyFlag) {
-            $('#imageShot').css({ 'width':'240', 'height':'180' });
+            $('#imageShot').css({ 'width':'240', 'height':'auto' });
         }
         $('#imageShot').css({'border':'2px solid rgba(255,255,255,1)'});
         if(! $('#imageShot').hasClass('toogleMag')) {
