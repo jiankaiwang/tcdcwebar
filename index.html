@@ -42,11 +42,11 @@
         z-index: 1;
     }
     .shrink {
-        -moz-transform:translateY(18em);
-        -webkit-transform:translateY(18em);
-        -o-transform:translateY(18em);
-        -ms-transform:translateY(18em);
-        transform:translateY(18em);
+        -moz-transform:translateY(10em);
+        -webkit-transform:translateY(10em);
+        -o-transform:translateY(10em);
+        -ms-transform:translateY(10em);
+        transform:translateY(10em);
     }
     html, body{ 
         height: 100%; 
@@ -410,10 +410,10 @@ function startAR() {
     
     // add a symbol(e.g. torus knot, etc.)
     //var geometry	= new THREE.TorusKnotGeometry(0.3,0.1,64,16);
-    var geometry	= new THREE.TorusGeometry(0.3,0.05,64,16);
+    var geometry	= new THREE.TorusGeometry(0.3,0.02,64,16);
     var material	= new THREE.MeshNormalMaterial(); 
     var mesh	= new THREE.Mesh( geometry, material );
-    mesh.position.y	= 0.2;
+    mesh.position.y	= 0.05;
     mesh.rotation.x = 1.57;
     arWorldRoot.add( mesh );    
     onRenderFcts.push(function(){
@@ -775,12 +775,12 @@ function takeScreenshot() {
         $('#uploadImg').html(img);
         
         // auto download
-        var dwnImg = imageCanvas.toDataURL("image/png");
+        /*var dwnImg = imageCanvas.toDataURL("image/png");
         var alink = document.createElement('a');
         alink.href = dwnImg;
         alink.download = getDate("default") + '_' + getLocation('current') + '.png';
         alink.click();
-        delete alink;
+        delete alink;*/
         
         // style the image
         if(! magnifyFlag) {
